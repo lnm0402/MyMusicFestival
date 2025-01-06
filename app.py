@@ -64,8 +64,6 @@ app.layout = html.Div(children=[
         html.Br(),
         html.Br(),
         html.Br(),
-        html.Br(),
-        html.Br(),
         html.H1("The music festival of the decade.", style={"text-align": "center", "font-size": "60px", "font-style": "italic"}),
         html.H4("And the lineup? All of your favorite artists.", style={"font-family": "helvetica", "font-weight": "lighter", "text-align": "center"}),
         html.Br(),
@@ -78,7 +76,9 @@ app.layout = html.Div(children=[
                         ),
             html.Br(),
             dbc.Spinner(html.Div(id="loading-output")),
-            html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url(), target="_blank"),
+            html.P("If you are new, you will be redirected to login to Spotify."),
+            html.P("Once logged in, click again to see your festival!"),
+            #html.A("Click here if the login page doesn't open!", href=sp_oauth.get_authorize_url(), target="_blank"),
             html.Br()
         ], style={"text-align": "center"}),
     dcc.Loading(
@@ -157,7 +157,7 @@ def on_click(n_clicks):
     create_poster(chosen_theme, chosen_theme['theme_id'], artist_names, f'{username.upper()}FEST', username, n_clicks, session_id)
 
     # Create the poster container with the dynamic poster image
-    confirm_message = f"Okay {username}! You've got some great taste. Check out your festival below:"
+    confirm_message = f"{username}, you've got some great taste. Check out your festival below:"
     poster_html_element = make_dynamic_poster_container(n_clicks, confirm_message, username, session_id)
     
     return [poster_html_element, ""]
