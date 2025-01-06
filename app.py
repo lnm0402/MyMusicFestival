@@ -157,4 +157,4 @@ def cleanup_files():
 
 # Run app
 if __name__ == '__main__':
-    app.run_server(debug=True, dev_tools_hot_reload=False)
+    app.run_server()
