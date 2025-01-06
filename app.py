@@ -186,8 +186,13 @@ def callback():
     # Store token info in session or some variable
     session["token_info"] = token_info
 
-    # Redirect back to the main page
-    return redirect("/")
+    # JavaScript to close the pop-up window
+    return '''
+        <script type="text/javascript">
+            window.close();
+            window.opener.location.reload();  // Reload the opener tab
+        </script>
+        '''
 
 # Run app
 if __name__ == '__main__':
