@@ -3,6 +3,7 @@ from dash import dcc, html, Input, Output, State, MATCH
 import dash_bootstrap_components as dbc
 import pandas as pd
 from dash.dash import no_update
+from dash.exceptions import PreventUpdate
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from PIL import Image
@@ -44,6 +45,7 @@ session_id = generate_id()
 
 # App Layout
 app.layout = html.Div(children=[
+    dcc.Location(id='url', refresh=False),
     html.Div([
         html.Div([
             html.H4([
@@ -113,57 +115,96 @@ def spotify_login():
         return sp
     return None
 
-# Callback: Create festival poster
+# Callback: For clicking launch button
 @app.callback(
     [Output('poster', 'children'), Output('login_error_message', 'children')],
     [Input("launch-button", "n_clicks")],
-    [State('poster', 'children')]
+    prevent_initial_call=True
 )
-def on_click(n_clicks, poster_children):
-    if n_clicks is not None:
-        token_info = session.get("token_info", None)
-        
-        if token_info is None:
-            # Redirect to Spotify for authentication if no valid token
-            auth_url = sp_oauth.get_authorize_url()
-            return [no_update, dcc.Location(href=auth_url, id="redirect")]
-        
-        # Token exists, create the poster
-        spotify_user = spotify_login()
-        if spotify_user is None:
-            return [html.Div(), "Oops... Something went wrong. Refresh the page and try again!"]
-        
-        try:
-            user_info = spotify_user.current_user()
-            username = user_info['id']
-        except Exception:
-            os.remove('.cache')
-            return [[], "Oops.. We couldn't load your Spotify credentials. Please try again."]
-
-        # Clean up old posters
-        for filename in glob.glob(f"assets/poster_{username}*"):
-            os.remove(filename)
-
-        # Generate new poster
-        artist_names = [x.upper() for x in get_top_artists(spotify_user)]
-        chosen_theme = random.choice([forest_theme, pastel_theme, sunset_theme, trippy_theme, rainbow_theme, checker_theme, galaxy_theme])
-        create_poster(chosen_theme, chosen_theme['theme_id'], artist_names, f'{username.upper()}FEST', username, n_clicks, session_id)
-
-        # Confirmation message
-        confirm_message = f"Okay {username}! You've got some great taste. Check out your festival below:"
-        poster_html_element = make_dynamic_poster_container(n_clicks, confirm_message, username, session_id)
-        return [poster_html_element, ""]
+def on_click(n_clicks):
+    if n_clicks is None:
+        raise PreventUpdate
     
-    return no_update
+    # Check if user is logged in by checking token
+    token_info = session.get("token_info", None)
+    
+    if token_info is None:
+        # Redirect to Spotify login if not logged in
+        auth_url = sp_oauth.get_authorize_url()
+        return [dcc.Location(href=auth_url, id="redirect"), ""]
+    
+    # Token exists, proceed to create the poster
+    spotify_user = spotify_login()
+    
+    if spotify_user is None:
+        return [[], "Oops... Something went wrong. Please try logging in again."]
+    
+    # Get the username and check for any existing posters
+    try:
+        user_info = spotify_user.current_user()
+        username = user_info['id']
+    except Exception:
+        os.remove('.cache')  # Remove cache if invalid session/token
+        return [[], "Error retrieving Spotify credentials. Please log in again."]
+    
+    # Clean up old posters
+    for filename in glob.glob(f"assets/poster_{username}*"):
+        os.remove(filename)
+
+    # Generate new poster
+    artist_names = [x.upper() for x in get_top_artists(spotify_user)]
+    chosen_theme = random.choice([forest_theme, pastel_theme, sunset_theme, trippy_theme, rainbow_theme, checker_theme, galaxy_theme])
+    create_poster(chosen_theme, chosen_theme['theme_id'], artist_names, f'{username.upper()}FEST', username, n_clicks, session_id)
+
+    # Create the poster container with the dynamic poster image
+    confirm_message = f"Okay {username}! You've got some great taste. Check out your festival below:"
+    poster_html_element = make_dynamic_poster_container(n_clicks, confirm_message, username, session_id)
+    
+    return [poster_html_element, ""]
+
+    # if n_clicks is not None:
+    #     token_info = session.get("token_info", None)
+        
+    #     if token_info is None:
+    #         # Redirect to Spotify for authentication if no valid token
+    #         auth_url = sp_oauth.get_authorize_url()
+    #         return [no_update, dcc.Location(href=auth_url, id="redirect")]
+        
+    #     # Token exists, create the poster
+    #     spotify_user = spotify_login()
+    #     if spotify_user is None:
+    #         return [html.Div(), "Oops... Something went wrong. Refresh the page and try again!"]
+        
+    #     try:
+    #         user_info = spotify_user.current_user()
+    #         username = user_info['id']
+    #     except Exception:
+    #         os.remove('.cache')
+    #         return [[], "Oops.. We couldn't load your Spotify credentials. Please try again."]
+
+    #     # Clean up old posters
+    #     for filename in glob.glob(f"assets/poster_{username}*"):
+    #         os.remove(filename)
+
+    #     # Generate new poster
+    #     artist_names = [x.upper() for x in get_top_artists(spotify_user)]
+    #     chosen_theme = random.choice([forest_theme, pastel_theme, sunset_theme, trippy_theme, rainbow_theme, checker_theme, galaxy_theme])
+    #     create_poster(chosen_theme, chosen_theme['theme_id'], artist_names, f'{username.upper()}FEST', username, n_clicks, session_id)
+
+    #     # Confirmation message
+    #     confirm_message = f"Okay {username}! You've got some great taste. Check out your festival below:"
+    #     poster_html_element = make_dynamic_poster_container(n_clicks, confirm_message, username, session_id)
+    #     return [poster_html_element, ""]
+    
+    # return no_update
 
 # Callback for logging out from Spotify and removing the dynamic card
 @app.callback(
     Output({"type": "dynamic-card", "index": MATCH}, "style"),
     Input({"type": "dynamic-delete", "index": MATCH}, "n_clicks"),
-    State('url', 'href'),  # You might have a dcc.Location component for handling URLs
     prevent_initial_call=True,
 )
-def remove_card(n_clicks, current_url):
+def remove_card(n_clicks):
     if n_clicks:
         # Clear the session or cache related to Spotify token
         if os.path.exists('.cache'):
@@ -204,14 +245,8 @@ def callback():
     # Store token info in session
     session["token_info"] = token_info
 
+    # Redirect back to the home page ("/") after login
     return redirect("/")
-    # JavaScript to close the pop-up window
-    # return '''
-    #     <script type="text/javascript">
-    #         window.close();
-    #         window.opener.location.reload();  // Reload the opener tab
-    #     </script>
-    #     '''
 
 # Run app
 if __name__ == '__main__':
