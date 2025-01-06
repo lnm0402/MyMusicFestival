@@ -204,7 +204,7 @@ def callback():
     # Store token info in session
     session["token_info"] = token_info
 
-    redirect("/")
+    return redirect("/")
     # JavaScript to close the pop-up window
     # return '''
     #     <script type="text/javascript">
