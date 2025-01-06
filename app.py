@@ -61,13 +61,20 @@ app.layout = html.Div(children=[
         html.Br(),
         html.P(id='login_error_message', style={"text-align": "center"}),
         html.Div([
-            dbc.Button("SEE YOUR FESTIVAL", id="launch-button", style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}),
+            html.A(
+                dbc.Button(
+                    "SEE YOUR FESTIVAL",
+                    id="launch-button",
+                    style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}
+                ),
+                href=sp_oauth.get_authorize_url(),
+                target="_blank"  # Open the link in a new tab
+            ),
             html.Br(),
-            html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url()),
+            html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url(), target="_blank"),
             dbc.Spinner(html.Div(id="loading-output")),
             html.Br()
-        ], style={"text-align": "center"})
-    ], style={"width": "100%", "height": "100%"}),
+        ], style={"text-align": "center"}),
     html.Div(id="poster", children=[], className="mt-4")
 ])
 
