@@ -9,7 +9,7 @@ from PIL import Image
 from themes import forest_theme, rainbow_theme, pastel_theme, sunset_theme, trippy_theme, checker_theme, galaxy_theme, create_poster
 import random
 import webbrowser
-from flask import session
+from flask import session, request, redirect
 import os
 import glob
 from uuid import uuid4
@@ -18,7 +18,7 @@ import atexit
 # Initialize Dash app
 external_stylesheets = [dbc.themes.QUARTZ, dbc.icons.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-server = app.server
+server = app.server  # Access Flask server directly
 
 # Set Spotify credentials
 cid = os.getenv("SPOTIPY_CLIENT_ID")
@@ -45,7 +45,7 @@ app.layout = html.Div(children=[
                 "font-family": "helvetica",
                 "font-size": "30px",
                 "text-align": "left",
-                "font-weight":'light'
+                "font-weight": 'light'
             })
         ]),
         html.Br(),
@@ -56,26 +56,19 @@ app.layout = html.Div(children=[
         html.Br(),
         html.Br(),
         html.Br(),
-        html.H1("The music festival of the decade.", style={"text-align": "center","font-size": "60px","font-style": "italic"}),
+        html.H1("The music festival of the decade.", style={"text-align": "center", "font-size": "60px", "font-style": "italic"}),
         html.H4("And the lineup? All of your favorite artists.", style={"font-family": "helvetica", "font-weight": "lighter", "text-align": "center"}),
         html.Br(),
         html.P(id='login_error_message', style={"text-align": "center"}),
         html.Div([
-            html.A(
-                dbc.Button(
-                    "SEE YOUR FESTIVAL",
-                    id="launch-button",
-                    style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}
-                ),
-                href=sp_oauth.get_authorize_url(),
-                target="_blank"  # Open the link in a new tab
-            ),
-            html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url(), target="_blank"),
+            dbc.Button("SEE YOUR FESTIVAL", id="launch-button", style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}),
+            html.Br(),
+            html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url()),
             dbc.Spinner(html.Div(id="loading-output")),
             html.Br()
-        ], style={"text-align": "center"}),
+        ], style={"text-align": "center"})
+    ], style={"width": "100%", "height": "100%"}),
     html.Div(id="poster", children=[], className="mt-4")
-])
 ])
 
 # Helper: Create dynamic poster HTML container
@@ -85,7 +78,7 @@ def make_dynamic_poster_container(n_clicks, confirmation_message, username, sess
         html.Br(),
         html.Div(html.Img(src=f"assets/poster_{username}_{session_id}_{n_clicks}.png"), style={"height": "100%", "text-align": "center"}),
         html.Br(),
-        html.Div(dbc.Button("Log Out",id={"type": "dynamic-delete", "index": n_clicks},n_clicks=0,color="secondary",style={"font-family":"Gill Sans","font-weight":"lighter","letter-spacing":".1rem"}),style={"text-align":"center",'width':'100%'}),
+        html.Div(dbc.Button("Log Out", id={"type": "dynamic-delete", "index": n_clicks}, n_clicks=0, color="secondary", style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}), style={"text-align": "center", 'width': '100%'}),
         html.Div(style={"height": "50px"})
     ], style={"width": '100%', "display": "inline-block"}, className="m-1", id={"type": "dynamic-card", "index": n_clicks}, width=12)
 
@@ -160,6 +153,25 @@ def cleanup_files():
             os.remove(file)
     except Exception as e:
         print(f"Error cleaning up poster folder: {e}")
+
+# Flask route to handle Spotify OAuth callback
+@server.route("/callback")
+def callback():
+    code = request.args.get("code")
+    
+    if not code:
+        return "Error: No code found in the URL."
+
+    # Exchange code for token
+    token_info = sp_oauth.get_access_token(code)
+    if not token_info:
+        return "Error: Failed to retrieve access token."
+
+    # Store token info in session or some variable
+    session["token_info"] = token_info
+
+    # Redirect back to the main page
+    return redirect("/")
 
 # Run app
 if __name__ == '__main__':
