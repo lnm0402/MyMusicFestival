@@ -63,6 +63,7 @@ app.layout = html.Div(children=[
         html.P(id='login_error_message', style={"text-align": "center"}),
         html.Div([
             dbc.Button("SEE YOUR FESTIVAL", id="launch-button", style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}),
+            html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url()),
             dbc.Spinner(html.Div(id="loading-output")),
             html.Br()
         ], style={"text-align": "center"})
