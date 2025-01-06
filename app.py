@@ -41,11 +41,11 @@ sp_oauth = SpotifyOAuth(client_id=cid, client_secret=secret, redirect_uri=redire
 def generate_id():
     return str(uuid4())
 
-session_id = generate_id()
+session_id = session.get("session_id", generate_id())
 
 # App Layout
 app.layout = html.Div(children=[
-    dcc.Location(id='url', refresh=False),
+    #dcc.Location(id='url', refresh=False),
     html.Div([
         html.Div([
             html.H4([
@@ -144,7 +144,8 @@ def on_click(n_clicks):
         user_info = spotify_user.current_user()
         username = user_info['id']
     except Exception:
-        os.remove('.cache')  # Remove cache if invalid session/token
+        if os.path.exists('.cache'):  # Check if .cache exists before removing
+            os.remove('.cache')  # Remove cache if invalid session/token
         return [[], "Error retrieving Spotify credentials. Please log in again."]
     
     # Clean up old posters
@@ -207,7 +208,7 @@ def on_click(n_clicks):
 def remove_card(n_clicks):
     if n_clicks:
         # Clear the session or cache related to Spotify token
-        if os.path.exists('.cache'):
+        if os.path.exists('.cache'):  # Check if .cache exists before removing
             os.remove('.cache')  # Delete cache or token if necessary
         session.clear()
         # Redirect user to Spotify's logout page
