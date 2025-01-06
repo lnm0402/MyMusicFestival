@@ -69,18 +69,14 @@ app.layout = html.Div(children=[
         html.Br(),
         html.P(id='login_error_message', style={"text-align": "center"}),
         html.Div([
-            html.A(
-                dbc.Button(
-                    "SEE YOUR FESTIVAL",
-                    id="launch-button",
-                    style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}
-                ),
-                href=sp_oauth.get_authorize_url(),
-                target="_blank"  # Open the link in a new tab
-            ),
+            dbc.Button(
+                "SEE YOUR FESTIVAL",
+                id="launch-button",
+                style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}
+                        ),
             html.Br(),
-            html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url(), target="_blank"),
             dbc.Spinner(html.Div(id="loading-output")),
+            html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url(), target="_blank"),
             html.Br()
         ], style={"text-align": "center"}),
     html.Div(id="poster", children=[], className="mt-4")
@@ -119,6 +115,14 @@ def spotify_login():
 )
 def on_click(n_clicks, poster_children):
     if n_clicks is not None:
+        token_info = session.get("token_info", None)
+        
+        if token_info is None:
+            # Redirect to Spotify for authentication if no valid token
+            auth_url = sp_oauth.get_authorize_url()
+            return [no_update, dcc.Location(href=auth_url, id="redirect")]
+        
+        # Token exists, create the poster
         spotify_user = spotify_login()
         if spotify_user is None:
             return [html.Div(), "Oops... Something went wrong. Refresh the page and try again!"]
