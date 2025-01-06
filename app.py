@@ -103,13 +103,13 @@ def get_top_artists(spotify_user):
     top_artist_dict = spotify_user.current_user_top_artists()
     return [artist['name'] for artist in top_artist_dict['items']]
 
-# Helper: Spotify login
+# Helper: Spotify login (check for existing token)
 def spotify_login():
-    try:
-        return spotipy.Spotify(auth_manager=sp_oauth)
-    except Exception as e:
-        print(f"Error creating Spotify object: {e}")
-        return None
+    token_info = session.get("token_info", None)
+    if token_info:
+        sp = spotipy.Spotify(auth=token_info['access_token'])
+        return sp
+    return None
 
 # Callback: Create festival poster
 @app.callback(
@@ -183,7 +183,7 @@ def callback():
     if not token_info:
         return "Error: Failed to retrieve access token."
 
-    # Store token info in session or some variable
+    # Store token info in session
     session["token_info"] = token_info
 
     # JavaScript to close the pop-up window
