@@ -76,8 +76,8 @@ app.layout = html.Div(children=[
                         ),
             html.Br(),
             dbc.Spinner(html.Div(id="loading-output")),
-            html.P("If you are new, you will be redirected to login to Spotify."),
-            html.P("Once logged in, click again to see your festival!"),
+            html.P("pssst... if you are new here, your first click will trigger Spotify's authentication.",style={"font-family": "helvetica","font-style":'italic'}),
+            html.P("Once you've logged in & hit agree- click See My Festival again to see your lineup!",style={"font-family": "helvetica","font-style":'italic'}),
             #html.A("Click here if the login page doesn't open!", href=sp_oauth.get_authorize_url(), target="_blank"),
             html.Br()
         ], style={"text-align": "center"}),
@@ -95,6 +95,7 @@ app.layout = html.Div(children=[
 def make_dynamic_poster_container(n_clicks, confirmation_message, username, session_id):
     return dbc.Col([
         html.H4(confirmation_message, style={"text-align": "center", "font-family": "helvetica", "font-weight": "lighter", "letter-spacing": ".1rem"}),
+        html.H6("The fun doesn't stop here... Click See My Festival again to generate a new poster!", style={"text-align": "center", "font-family": "helvetica", "font-weight": "lighter"}),
         html.Br(),
         html.Div(html.Img(src=f"assets/poster_{username}_{session_id}_{n_clicks}.png"), style={"height": "100%", "text-align": "center"}),
         html.Br(),
@@ -157,7 +158,7 @@ def on_click(n_clicks):
     create_poster(chosen_theme, chosen_theme['theme_id'], artist_names, f'{username.upper()}FEST', username, n_clicks, session_id)
 
     # Create the poster container with the dynamic poster image
-    confirm_message = f"{username}, you've got some great taste. Check out your festival below:"
+    confirm_message = f"{username}, you've got some great taste. Check out your festival below!"
     poster_html_element = make_dynamic_poster_container(n_clicks, confirm_message, username, session_id)
     
     return [poster_html_element, ""]
