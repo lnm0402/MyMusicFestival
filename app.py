@@ -13,15 +13,12 @@ from flask import session
 import os
 import glob
 from uuid import uuid4
-from dotenv import load_dotenv
 import atexit
 
 # Initialize Dash app
 external_stylesheets = [dbc.themes.QUARTZ, dbc.icons.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-
-# Load environment variables
-load_dotenv()
+server = app.server
 
 # Set Spotify credentials
 cid = os.getenv("SPOTIPY_CLIENT_ID")
@@ -36,7 +33,7 @@ def generate_id():
     return str(uuid4())
 
 session_id = generate_id()
-print('Beginning session:', session_id)
+#print('Beginning session:', session_id)
 
 # App Layout
 app.layout = html.Div(children=[
@@ -150,7 +147,7 @@ def open_url(url):
 # Cleanup function for session-based files
 @atexit.register
 def cleanup_files():
-    print("On exit, cleaning up files for session:", session_id)
+    #print("On exit, cleaning up files for session:", session_id)
     try:
         for file in glob.glob(f"assets/*_{session_id}_*.png"):
             os.remove(file)
