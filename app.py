@@ -76,6 +76,7 @@ app.layout = html.Div(children=[
         ], style={"text-align": "center"}),
     html.Div(id="poster", children=[], className="mt-4")
 ])
+])
 
 # Helper: Create dynamic poster HTML container
 def make_dynamic_poster_container(n_clicks, confirmation_message, username, session_id):
