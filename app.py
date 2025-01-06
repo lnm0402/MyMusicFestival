@@ -79,7 +79,13 @@ app.layout = html.Div(children=[
             html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url(), target="_blank"),
             html.Br()
         ], style={"text-align": "center"}),
-    html.Div(id="poster", children=[], className="mt-4")
+    dcc.Loading(
+        id="loading-spinner",
+        type="default",
+        children=[
+            html.Div(id="poster", children=[], className="mt-4")
+        ]
+    ),
 ])
 ])
 
@@ -150,16 +156,24 @@ def on_click(n_clicks, poster_children):
     
     return no_update
 
-# Callback: Dynamic logout button
+# Callback for logging out from Spotify and removing the dynamic card
 @app.callback(
     Output({"type": "dynamic-card", "index": MATCH}, "style"),
     Input({"type": "dynamic-delete", "index": MATCH}, "n_clicks"),
+    State('url', 'href'),  # You might have a dcc.Location component for handling URLs
     prevent_initial_call=True,
 )
-def remove_card(_):
-    open_url('https://accounts.spotify.com/en/logout')
-    os.remove('.cache')
-    return {"display": "none"}
+def remove_card(n_clicks, current_url):
+    if n_clicks:
+        # Clear the session or cache related to Spotify token
+        if os.path.exists('.cache'):
+            os.remove('.cache')  # Delete cache or token if necessary
+        session.clear()
+        # Redirect user to Spotify's logout page
+        logout_url = 'https://accounts.spotify.com/en/logout'
+        return dcc.Location(href=logout_url, id='redirect')  # Redirect to Spotify logout
+    
+    return {"display": "none"}  # Hide the card
 
 # Helper: Open URL
 def open_url(url):
@@ -190,13 +204,14 @@ def callback():
     # Store token info in session
     session["token_info"] = token_info
 
+    return
     # JavaScript to close the pop-up window
-    return '''
-        <script type="text/javascript">
-            window.close();
-            window.opener.location.reload();  // Reload the opener tab
-        </script>
-        '''
+    # return '''
+    #     <script type="text/javascript">
+    #         window.close();
+    #         window.opener.location.reload();  // Reload the opener tab
+    #     </script>
+    #     '''
 
 # Run app
 if __name__ == '__main__':
