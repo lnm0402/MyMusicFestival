@@ -15,9 +15,17 @@ import glob
 from uuid import uuid4
 import atexit
 
+# Retrieve the secret key from the environment variable
+secret_key = os.getenv("SECRET_KEY")
+
+if not secret_key:
+    raise ValueError("No SECRET_KEY set for the app. Please set the SECRET_KEY environment variable.")
+
 # Initialize Dash app
 external_stylesheets = [dbc.themes.QUARTZ, dbc.icons.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.server.secret_key = secret_key
+
 server = app.server  # Access Flask server directly
 
 # Set Spotify credentials
