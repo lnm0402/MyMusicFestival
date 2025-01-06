@@ -33,7 +33,6 @@ def generate_id():
     return str(uuid4())
 
 session_id = generate_id()
-#print('Beginning session:', session_id)
 
 # App Layout
 app.layout = html.Div(children=[
@@ -62,12 +61,19 @@ app.layout = html.Div(children=[
         html.Br(),
         html.P(id='login_error_message', style={"text-align": "center"}),
         html.Div([
-            dbc.Button("SEE YOUR FESTIVAL", id="launch-button", style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}),
-            html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url()),
+            html.A(
+                dbc.Button(
+                    "SEE YOUR FESTIVAL",
+                    id="launch-button",
+                    style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}
+                ),
+                href=sp_oauth.get_authorize_url(),
+                target="_blank"  # Open the link in a new tab
+            ),
+            html.A("Click here if the pop-up doesn't open", href=sp_oauth.get_authorize_url(), target="_blank"),
             dbc.Spinner(html.Div(id="loading-output")),
             html.Br()
-        ], style={"text-align": "center"})
-    ], style={"width": "100%", "height": "100%"}),
+        ], style={"text-align": "center"}),
     html.Div(id="poster", children=[], className="mt-4")
 ])
 
@@ -148,7 +154,6 @@ def open_url(url):
 # Cleanup function for session-based files
 @atexit.register
 def cleanup_files():
-    #print("On exit, cleaning up files for session:", session_id)
     try:
         for file in glob.glob(f"assets/*_{session_id}_*.png"):
             os.remove(file)
