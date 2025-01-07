@@ -24,7 +24,7 @@ if not secret_key:
 
 # Initialize Dash app
 external_stylesheets = [dbc.themes.QUARTZ, dbc.icons.BOOTSTRAP]
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets,title="My Music Fest")
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets,title="MyMusicFest")
 app.server.secret_key = secret_key
 
 server = app.server  # Access Flask server directly
