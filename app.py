@@ -24,7 +24,7 @@ if not secret_key:
 
 # Initialize Dash app
 external_stylesheets = [dbc.themes.QUARTZ, dbc.icons.BOOTSTRAP]
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets,title="My Music Fest")
 app.server.secret_key = secret_key
 
 server = app.server  # Access Flask server directly
@@ -70,7 +70,7 @@ app.layout = html.Div(children=[
         html.P(id='login_error_message', style={"text-align": "center"}),
         html.Div([
             dbc.Button(
-                "SEE YOUR FESTIVAL",
+                "SEE MY FESTIVAL",
                 id="launch-button",
                 style={"font-family": "Gill Sans", "font-weight": "lighter", "letter-spacing": ".1rem"}
                         ),
